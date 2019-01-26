@@ -2,6 +2,7 @@
 import pygame
 import random
 import math
+import argparse
 from math import pi
 import pipes as pipeModule
 import bird
@@ -15,6 +16,19 @@ class Background(pygame.sprite.Sprite):
         self.image = pygame.transform.scale(self.picture, (700, 400))
         self.rect = self.image.get_rect()
         self.rect.left, self.rect.top = location
+
+description_string = "Tristin Glunt\n" \
+                     "Side Project - FlappyBird_NeuroEvolution\n" \
+                     "Flappy Bird game with Genetic algorithms and neural networks."
+
+parser = argparse.ArgumentParser(description=description_string, formatter_class=argparse.RawTextHelpFormatter)
+parser.add_argument('-t', dest='type', type=str, action='store', nargs='?', default="best", help='Type of run you want. Acceptable values are best, train')
+args = parser.parse_args()
+type_of_play = args.type
+if type_of_play not in ['best', 'train']:
+    print("Improper type of run specified. Using default best bird.")
+    type_of_play = 'best'
+
 
 GREY = (200, 200, 200)
 ORANGE = (200, 100, 50)
@@ -45,7 +59,6 @@ all_sprites = pygame.sprite.Group()
 #flappy-bird specific
 #TODO: load in best bird as option
 slider = slider_module.Slider("Speed", 1, 20, 1, 25)
-totalBirds = 1
 birds = []
 savedBirds = []
 score = 0
@@ -53,18 +66,20 @@ current_generation = 0
 pipesOnScreen = []
 BackGround = Background('background.png', [0,0])
 
-if totalBirds == 1:
+if type_of_play == 'best':
+    totalBirds = 1
     birds.append(getBestBirdBrain())
-else:
+elif type_of_play == 'train':
+    totalBirds = 400
     # initialize totalBirds
     for i in range(totalBirds):
         # create new bird, add to list of birds
         birds.append(bird.Bird(size[1], None))
+else:
+    totalBirds = 1
 
 flag_key_released = True
 all_sprites.add(birds)
-
-
 while not done:
 
     # Clear the screen and set the screen background
@@ -80,18 +95,17 @@ while not done:
                 slider.hit = True
         elif event.type == pygame.MOUSEBUTTONUP:
             slider.hit = False
-
-        """ comment below out if actually wanting to play, commented for nnet purposes"""
-        # elif event.type == pygame.KEYDOWN:
-        #     if event.key == pygame.K_SPACE and flag_key_released == True:
-        #         bird.flap()
-        #         flag_key_released = False
-        # elif event.type == pygame.KEYUP:
-        #     if event.key == pygame.K_SPACE:
-        #         flag_key_released = True
-        # if event.type == pygame.MOUSEBUTTONDOWN: # If user clicked
-        #     pos = pygame.mouse.get_pos()
-        #     pygame.draw.circle(screen, WHITE, (pos), 20, 1) # Flag that we are done so we exit this loop
+        if type_of_play == 'play':
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_SPACE and flag_key_released == True:
+                    bird.flap()
+                    flag_key_released = False
+            elif event.type == pygame.KEYUP:
+                if event.key == pygame.K_SPACE:
+                    flag_key_released = True
+            if event.type == pygame.MOUSEBUTTONDOWN: # If user clicked
+                pos = pygame.mouse.get_pos()
+                pygame.draw.circle(screen, WHITE, (pos), 20, 1) # Flag that we are done so we exit this loop
 
     # adjust speed of generations based on slider
     for t in range(int(slider.val)):

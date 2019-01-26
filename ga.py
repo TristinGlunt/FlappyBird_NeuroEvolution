@@ -26,12 +26,106 @@ def nextGeneration(totalBirds, birds):
 
     return newBirds
 
+def calculate_fitness(birds):
+
+    max_score = -9999999
+    min_score = 99999999
+    sum_score = 0
+    best_bird = birds[0]
+
+    # normalize birds scores for fitness values
+    for bird in birds:
+        sum_score += bird.score
+        if bird.score > max_score:
+            max_score = bird.score
+            best_bird = bird
+        if bird.score < min_score:
+            min_score = bird.score
+    if save:
+        pkl_file = open('max_score_all_time', 'rb')
+        max_score_all_time = pickle.load(pkl_file)
+        print("Max score of all time: ", max_score_all_time)
+        if best_bird.score > max_score_all_time:
+            print("Saving new bird to best_bird.brain with score: " + str(best_bird.score))
+            output = open('best_bird.brain', 'wb')
+            best_bird_all_time = best_bird
+            pickle.dump(best_bird_all_time.brain, output)
+            output.close()
+
+            output = open('max_score_all_time', 'wb')
+            pickle.dump(bird.score, output)
+            output.close()
+        else:
+            print("Score of " + str(best_bird.score) + " lower than max all time score.")
+            print("Not saving new bird brain to best_bird.brain")
+
+            pkl_file.close()
+
+    for bird in birds:
+        bird.fitness = bird.score / max_score
+
+    print("Max score of bird!: " + str(max_score))
+    print("Min score of generation: " + str(min_score))
+    return max_score, min_score
+
+"""
+@generate_next_generation: The heart of the genetic algorith. This algorithm
+took place of mutating birds and choosing the next generation. For a walkthrough,
+refer to README.md
+@params: list of bird agents
+"""
+def generate_next_generation(birds):
+
+    elite_birds = int((0.65) * len(birds))
+    loser_birds = int((0.10) * len(birds))
+    mutated_birds = int((0.25) * len(birds))
+
+    new_generation = []
+
+    dict_birds_scores = {}
+    for bird in birds:
+        dict_birds_scores[bird] = bird.fitness
+
+    # sort dictionary based on fitness
+    sorted_birds = sorted(dict_birds_scores.items(), key=lambda kv: kv[1])
+    # print(sorted_birds)
+    reverse_sorted_birds = dict(list(reversed(sorted_birds)))
+    # print(reverse_sorted_birds)
+    dict_sorted_birds = dict(sorted_birds)
+
+    # add loser birds to next generation
+    counter = 0
+    for key, value in dict_sorted_birds.items():
+        if counter < loser_birds:
+            newBird = bird_module.Bird(WINDOW_HEIGHT, key.brain.parameters)
+            newBird.score = 0
+            new_generation.append(newBird)
+        else:
+            break
+        counter += 1
+
+    # add elite birds to next generation
+    counter = 0
+    for k, v in reverse_sorted_birds.items():
+        if counter < elite_birds:
+            newBird = bird_module.Bird(WINDOW_HEIGHT, k.brain.parameters)
+            newBird.score = 0
+            new_generation.append(newBird)
+        else:
+            break
+        counter += 1
+
+    # pick birds randomly, mutate them randomly, add to next gen
+    for i in range(mutated_birds):
+        new_generation.append(pickOneBird(birds))
+
+    return new_generation
 
 def pickOneBird(mating_pool):
     bird = random.choice(mating_pool)
     # mutation the birds brain a bit (flipping signs of weights randomly)
 
-    # we won, don't mutate
+    # don't mutate really good birds even if they were choosen to mutate
     if bird.score >= 10000:
         return bird
 
@@ -42,55 +136,25 @@ def pickOneBird(mating_pool):
 
     return newBird
 
-# in place function to mutate birds fitness values
+def getBestBirdBrain():
+    pkl_file = open('best_bird.brain', 'rb')
 
+    best_brain = pickle.load(pkl_file)
+    best_bird = bird_module.Bird(WINDOW_HEIGHT, None)
+    best_bird.brain = best_brain
 
-def calculate_fitness(birds):
-
-    max_score = -9999999
-    min_score = 99999999
-    sum_score = 0
-
-    # normalize birds scores for fitness values
-    for bird in birds:
-        sum_score += bird.score
-        if bird.score > max_score:
-            max_score = bird.score
-        if bird.score < min_score:
-            min_score = bird.score
-        if save:
-            pkl_file = open('max_score_all_time', 'rb')
-            max_score_all_time = pickle.load(pkl_file)
-
-            if bird.score > max_score_all_time:
-                print("Saving new bird with score: " + str(bird.score))
-                output = open('best_bird.brain', 'wb')
-                best_bird_all_time = bird
-                pickle.dump(best_bird_all_time.brain, output)
-                output.close()
-
-                output = open('max_score_all_time', 'wb')
-                pickle.dump(bird.score, output)
-                output.close()
-            pkl_file.close()
-
-    for bird in birds:
-        bird.fitness = bird.score / max_score
-
-    print("Max score of bird!: " + str(max_score))
-    print("Min score of generation: " + str(min_score))
-    return max_score, min_score
-
+    return best_bird
 
 """
+Old genetic algorithm method used the below method for generating the next generation
+The algorithm is now based on @generate_next_generation
+
 @generate_mating_pool: Based on the current fitness out of the maximum fitness, we will add
 that entity to the mating pool that number of times.
 EX: Fitness score = 15, maxFitness = 60, normalized_fitness = 0.25, 0.25 * 100 = 25, thus
 there will be 25 adds of this entity. Therefore, the higher the fitness score, the more
 likely that entity is to be a parent
 """
-
-
 def generate_mating_pool(population, max_score, min_score):
 
     mating_pool = []
@@ -127,68 +191,3 @@ def generate_mating_pool(population, max_score, min_score):
             mating_pool.append(population[i])
 
     return mating_pool
-
-
-def generate_next_generation(birds):
-
-    elite_birds = int((0.65) * len(birds))
-    loser_birds = int((0.10) * len(birds))
-    mutated_birds = int((0.25) * len(birds))
-
-    new_generation = []
-
-    dict_birds_scores = {}
-    for bird in birds:
-        dict_birds_scores[bird] = bird.fitness
-
-    # sort dictionary based on fitness
-    sorted_birds = sorted(dict_birds_scores.items(), key=lambda kv: kv[1])
-    # print(sorted_birds)
-    reverse_sorted_birds = dict(list(reversed(sorted_birds)))
-    # print(reverse_sorted_birds)
-    dict_sorted_birds = dict(sorted_birds)
-
-    # print(sorted_birds)
-    counter = 0
-    for key, value in dict_sorted_birds.items():
-        # append loser birds
-        if counter < loser_birds:
-            newBird = bird_module.Bird(WINDOW_HEIGHT, key.brain.parameters)
-            newBird.score = 0
-            new_generation.append(newBird)
-        else:
-            break
-        counter += 1
-    print(len(new_generation))
-
-    # reverse list append on elite birds
-    counter = 0
-    for k, v in reverse_sorted_birds.items():
-        if counter < elite_birds:
-            newBird = bird_module.Bird(WINDOW_HEIGHT, k.brain.parameters)
-            newBird.score = 0
-            new_generation.append(newBird)
-        else:
-            break
-        counter += 1
-
-    print(len(new_generation))
-
-    # pick mutated birds
-    for i in range(mutated_birds):
-        new_generation.append(pickOneBird(birds))
-
-    print(len(new_generation))
-
-    # print(sorted_birds)
-    return new_generation
-
-
-def getBestBirdBrain():
-    pkl_file = open('best_bird.brain', 'rb')
-
-    best_brain = pickle.load(pkl_file)
-    best_bird = bird_module.Bird(WINDOW_HEIGHT, None)
-    best_bird.brain = best_brain
-
-    return best_bird
