@@ -1,8 +1,9 @@
 # FlappyBird_NeuroEvolution
 Flappy bird game with agents controlled by neural networks using genetic algorithms
 
-## How to run: `python flappy_bird.py -t 'best'`
-               `python flappy_bird.py -t 'train'`
+## How to run:
+`python flappy_bird.py -t 'best'`
+`python flappy_bird.py -t 'train'`
 
 where the `'best'` flag will be the single best bird to have played the game of
 all time stored in `best_bird.brain` and their score in `max_score_all_time`.
