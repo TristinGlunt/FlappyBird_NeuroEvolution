@@ -1,0 +1,5 @@
+{
+  "terminal.integrated.shell.windows": "C:\\Users\\tristin\\Downloads\\WinPython-64bit-3.6.3.0Qt5\\winpython_cmd.exe",
+  "python.pythonPath": "C:\\Users\\tristin\\Anaconda3\\python.exe",
+  "python.linting.pylintArgs": ["----extension-pkg-whitelist=1xml"]
+}
