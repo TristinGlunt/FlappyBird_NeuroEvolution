@@ -13,9 +13,9 @@ scratch.
 ## Purpose:
 
 The following repository is a Flappy Bird game designed in PyGame. The game
-engine is not the point of the repository, as any decent game is designed in
-Unity. This repo is to demonstrate neural networks with genetic algorithms
-as the key learning mechanism instead of the canonical back-propagation methods.
+engine is not the point of the repository. This repo is to demonstrate neural 
+networks with genetic algorithms as the key learning mechanism instead of the 
+canonical back-propagation methods.
 
 This repo was a side-project I decided to implement after falling deeply
 interested in genetic algorithms and neural networks. I always thought it
